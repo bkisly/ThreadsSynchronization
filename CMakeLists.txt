@@ -3,4 +3,4 @@ project(ThreadsSynchronization)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(ThreadsSynchronization main.cpp include/threadArgs.h include/storeMonitor.h src/storeMonitor.cpp include/fileManager.h src/fileManager.cpp)
+add_executable(ThreadsSynchronization main.cpp include/threadArgs.h include/storeMonitor.h include/fileManager.h src/fileManager.cpp)
