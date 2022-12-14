@@ -22,8 +22,8 @@ public:
     explicit StoreMonitor(unsigned storeCapacity);
     ~StoreMonitor();
 
-    void produce(unsigned amount);
-    void consume(unsigned amount);
+    void produce(unsigned id, unsigned amount);
+    void consume(unsigned id, unsigned amount);
     [[nodiscard]] bool canProduce(unsigned storeStatus, unsigned amount) const;
     [[nodiscard]] bool canConsume(unsigned storeStatus, unsigned amount) const;
 };
