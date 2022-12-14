@@ -26,6 +26,6 @@ public:
     void consume(unsigned id, unsigned amount);
     [[nodiscard]] bool canProduce(unsigned storeStatus, unsigned amount) const;
     [[nodiscard]] bool canConsume(unsigned storeStatus, unsigned amount) const;
-};
+} monitor(100);
 
 #endif //THREADSSYNCHRONIZATION_STOREMONITOR_H

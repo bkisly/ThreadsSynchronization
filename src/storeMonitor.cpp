@@ -2,17 +2,20 @@
 // Created by bkisly on 14.12.22.
 //
 
+#include <iostream>
 #include "../include/storeMonitor.h"
 #include "../include/fileManager.h"
+
+using namespace std;
 
 StoreMonitor::StoreMonitor(unsigned int storeCapacity) {
     this->storeCapacity = storeCapacity;
     prodAmount = 0;
     consAmount = 0;
 
-    pthread_mutex_init(&mutex, nullptr);
     pthread_cond_init(&prodCondition, nullptr);
     pthread_cond_init(&consCondition, nullptr);
+    pthread_mutex_init(&mutex, nullptr);
 }
 
 StoreMonitor::~StoreMonitor() {
@@ -22,7 +25,9 @@ StoreMonitor::~StoreMonitor() {
 }
 
 void StoreMonitor::produce(unsigned id, unsigned amount) {
+    cout << "inside monitor, mutex is: " << endl;
     pthread_mutex_lock(&mutex);
+    cout << "inside mutex" << endl;
     prodAmount++;
 
     if(prodUnlocked == 0) {
@@ -33,6 +38,7 @@ void StoreMonitor::produce(unsigned id, unsigned amount) {
         unsigned storeStatus = readStore(); // read the store here
 
         if(canProduce(storeStatus, amount)) {
+            cout << "can produce" << endl;
             writeToStore(storeStatus + amount);
             appendLog(
                     "log_producer_" + std::to_string(id) + ".txt",
@@ -40,6 +46,7 @@ void StoreMonitor::produce(unsigned id, unsigned amount) {
 
             prodUnlocked = 1;
             prodAmount--;
+            cout << "produced" << endl;
             pthread_cond_signal(&prodCondition);
         }
         else {
@@ -52,7 +59,7 @@ void StoreMonitor::produce(unsigned id, unsigned amount) {
             pthread_cond_signal(&consCondition);
         }
     }
-
+    cout << "signal sent" << endl;
     pthread_mutex_unlock(&mutex);
 }
 
