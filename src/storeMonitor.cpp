@@ -3,6 +3,7 @@
 //
 
 #include "../include/storeMonitor.h"
+#include "../include/fileManager.h"
 
 StoreMonitor::StoreMonitor(unsigned int storeCapacity) {
     this->storeCapacity = storeCapacity;
@@ -20,7 +21,7 @@ StoreMonitor::~StoreMonitor() {
     pthread_cond_destroy(&consCondition);
 }
 
-void StoreMonitor::produce(unsigned int amount) {
+void StoreMonitor::produce(unsigned id, unsigned amount) {
     pthread_mutex_lock(&mutex);
     prodAmount++;
 
@@ -29,15 +30,23 @@ void StoreMonitor::produce(unsigned int amount) {
     }
     else {
         prodUnlocked = 0;
-        int storeStatus = 0; // read the store here
+        unsigned storeStatus = readStore(); // read the store here
 
         if(canProduce(storeStatus, amount)) {
-            // write to store
+            writeToStore(storeStatus + amount);
+            appendLog(
+                    "log_producer_" + std::to_string(id) + ".txt",
+                    "Producer no. " + std::to_string(id) + " has produced " + std::to_string(amount) + " units.");
+
             prodUnlocked = 1;
             prodAmount--;
             pthread_cond_signal(&prodCondition);
         }
         else {
+            appendLog(
+                    "log_producer_" + std::to_string(id) + ".txt",
+                    "Producer no. " + std::to_string(id) + " hasn't produced anything.");
+
             consUnlocked = 1;
             prodAmount--;
             pthread_cond_signal(&consCondition);
@@ -47,7 +56,7 @@ void StoreMonitor::produce(unsigned int amount) {
     pthread_mutex_unlock(&mutex);
 }
 
-void StoreMonitor::consume(unsigned int amount) {
+void StoreMonitor::consume(unsigned id, unsigned amount) {
     pthread_mutex_lock(&mutex);
     consAmount++;
 
@@ -55,15 +64,23 @@ void StoreMonitor::consume(unsigned int amount) {
         pthread_cond_wait(&consCondition, &mutex);
     } else {
         consUnlocked = 0;
-        int storeStatus = 0; // read the store
+        unsigned storeStatus = readStore(); // read the store
 
         if (canConsume(storeStatus, amount)) {
-            // write to store
+            writeToStore(storeStatus + amount);
+            appendLog(
+                    "log_consumer_" + std::to_string(id) + ".txt",
+                    "Consumer no. " + std::to_string(id) + " has consumed " + std::to_string(amount) + " units.");
+
             consUnlocked = 1;
             consAmount--;
             pthread_cond_signal(&consCondition);
         }
         else {
+            appendLog(
+                    "log_consumer_" + std::to_string(id) + ".txt",
+                    "Consumer no. " + std::to_string(id) + " hasn't consumed anything.");
+
             prodUnlocked = 1;
             consAmount--;
             pthread_cond_signal(&prodCondition);
