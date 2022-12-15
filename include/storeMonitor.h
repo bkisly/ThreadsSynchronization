@@ -77,6 +77,7 @@ public:
 
         pthread_mutex_unlock(&mutex);
     }
+
     void consume(unsigned id, unsigned amount) {
         pthread_mutex_lock(&mutex);
         consAmount++;
@@ -110,9 +111,11 @@ public:
 
         pthread_mutex_unlock(&mutex);
     }
+
     [[nodiscard]] bool canProduce(unsigned storeStatus, unsigned amount) const {
         return (storeStatus < storeCapacity / 2 || consAmount == 0) && storeStatus + amount <= storeCapacity;
     }
+
     [[nodiscard]] bool canConsume(unsigned storeStatus, unsigned amount) const {
         return (storeStatus >= storeCapacity / 2 || consAmount == 0) && storeStatus - amount >= 0;
     }

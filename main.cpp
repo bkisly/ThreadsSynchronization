@@ -1,27 +1,49 @@
 #include <random>
+#include <cstdlib>
+#include <vector>
 
 #include "unistd.h"
 #include "include/fileManager.h"
 #include "include/storeMonitor.h"
 #include "include/threadArgs.h"
 
+#define MAX_THREADS 128
+
 void *producer(void *arg);
 void *consumer(void *arg);
 threadArgs getArgs(unsigned id, unsigned minValue, unsigned maxValue);
 
-int main() {
+int main(int argc, char *argv[]) {
     writeToStore(0);
-    monitor.setStoreCapacity(100);
-    pthread_t threads[2];
+    monitor.setStoreCapacity(std::stoi(argv[1]));
+    unsigned prodCount = std::stoi(argv[2]);
+    unsigned consCount = std::stoi(argv[3]);
 
-    threadArgs prodArgs = getArgs(1, 15, 25);
-    threadArgs consArgs = getArgs(1, 20, 30);
+    pthread_t threads[MAX_THREADS];
+    threadArgs args[MAX_THREADS];
 
-    pthread_create(&threads[0], nullptr, &producer, &prodArgs);
-    pthread_create(&threads[1], nullptr, &consumer, &consArgs);
+    for(int i = 0; i < prodCount; i++) {
+        args[i] = getArgs(
+                i + 1,
+                std::stoi(argv[4 + i * 2]),
+                std::stoi(argv[5 + i * 2]));
+    }
 
-    pthread_join(threads[0], nullptr);
-    pthread_join(threads[1], nullptr);
+    for(int i = 0; i < consCount; i++) {
+        args[i + prodCount] = getArgs(
+                i + 1,
+                std::stoi(argv[4 + 2 * (i + prodCount)]),
+                std::stoi(argv[5 + 2 * (i + prodCount)]));
+    }
+
+    for(int i = 0; i < prodCount + consCount; i++) {
+        if(i < prodCount) {
+            pthread_create(&threads[i], nullptr, &producer, &args[i]);
+        }
+        else {
+            pthread_create(&threads[i], nullptr, &consumer, &args[i]);
+        }
+    }
 
     pthread_exit(nullptr);
 }
@@ -36,8 +58,6 @@ void *producer(void *arg) {
         unsigned amount = intDist(engine);
         monitor.produce(args->id, amount);
     }
-
-    pthread_exit(nullptr);
 }
 
 void *consumer(void *arg) {
@@ -50,8 +70,6 @@ void *consumer(void *arg) {
         unsigned amount = intDist(engine);
         monitor.consume(args->id, amount);
     }
-
-    pthread_exit(nullptr);
 }
 
 threadArgs getArgs(unsigned id, unsigned minValue, unsigned maxValue) {
