@@ -117,7 +117,7 @@ public:
     }
 
     [[nodiscard]] bool canConsume(unsigned storeStatus, unsigned amount) const {
-        return (storeStatus >= storeCapacity / 2 || consAmount == 0) && storeStatus - amount >= 0;
+        return (storeStatus >= storeCapacity / 2 || prodAmount == 0) && storeStatus >= amount;
     }
 } monitor;
 

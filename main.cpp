@@ -16,6 +16,7 @@ threadArgs getArgs(unsigned id, unsigned minValue, unsigned maxValue);
 int main(int argc, char *argv[]) {
     writeToStore(0);
     monitor.setStoreCapacity(std::stoi(argv[1]));
+
     unsigned prodCount = std::stoi(argv[2]);
     unsigned consCount = std::stoi(argv[3]);
 
